@@ -17,13 +17,13 @@
     },
     props:{
       probeType:{
-        type:Number,
+        type: Number,
         default(){
           return 0
         }
       },
       pullUpLoad:{
-        type:Boolean,
+        type: Boolean,
         default() {
           return false;
         }
@@ -37,23 +37,35 @@
       })
 
       //监听滚动的位置
-      this.scroll.on('scroll',(position)=>{
-        this.$emit('scroll',position)
-      })
+      if (this.probeType === 2 || this.probeType === 3){
+        this.scroll.on('scroll',(position)=>{
+          this.$emit('scroll',position)
+        })
+      }
 
-      //监听上拉加载更多
-      this.scroll.on('pullingUp',()=>{
-        this.$emit('pullingUp')
-      })
+      //监听滑动到底部
+      if (this.pullUpLoad){
+        this.scroll.on('pullingUp',()=>{
+          this.$emit('pullingUp')
+        })
+      }
+
 
     },
     methods:{
-      scrollTop(x, y, time=300){
-        this.scroll.scrollTo(x, y, time)
+      scrollTo(x, y, time=300){
+        this.scroll && this.scroll.scrollTo(x, y, time)
+      },
+      refresh(){
+        this.scroll && this.scroll.refresh()
       },
       finishPullUp(){
-        this.scroll.finishPullUp()
+        this.scroll && this.scroll.finishPullUp()
+      },
+      getScrollY(){
+        return this.scroll ? this.scroll.y : 0
       }
+
     }
   }
 </script>
