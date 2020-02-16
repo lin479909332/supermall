@@ -24,21 +24,12 @@
   import Scroll from 'components/common/scroll/Scroll'
   import BackTop from 'components/content/backTop/BackTop'
 
-  import { getHomeMultidata, getHomeGoods} from 'network/home'
-  import { debounce } from 'common/untils'
+  import {getHomeMultidata, getHomeGoods} from 'network/home'
+  import {itemListenerMixin} from 'common/mixin'
 
   export default {
     name: "Home",
-    components:{
-      HomeSwiper,
-      RecommendView,
-      FeatureView,
-      NavBar,
-      TabControl,
-      GoodList,
-      Scroll,
-      BackTop
-    },
+    mixins: [itemListenerMixin],
     data(){
       return{
         banners: [],
@@ -52,8 +43,18 @@
         isShowBackTop: false,
         tabOffSetTop: 0,
         isTabFixed: false,
-        saveY:0
+        saveY: 0
       }
+    },
+    components:{
+      HomeSwiper,
+      RecommendView,
+      FeatureView,
+      NavBar,
+      TabControl,
+      GoodList,
+      Scroll,
+      BackTop
     },
     computed:{
       showGoods(){
@@ -61,11 +62,15 @@
       }
     },
     activated(){
+      //瞬间滑动要保存的位置
       this.$refs.scroll.scrollTo(0, this.saveY, 0)
       this.$refs.scroll.refresh()
     },
     deactivated(){
+      //保存Y值
       this.saveY = this.$refs.scroll.getScrollY()
+      //取消全局事件的监听
+      this.$bus.$off('itemImageLoad',this.itemImgListener)
     },
     created() {
       //1、请求多个数据
@@ -77,11 +82,7 @@
       this.getHomeGoods('sell')
     },
     mounted(){
-      const refresh = debounce(this.$refs.scroll.refresh,50)
-      //监听图片加载完成
-      this.$bus.$on('itemImageLoad',() => {
-        refresh()
-      })
+      //console.log('我是home');
     },
     methods:{
       // 事件监听相关方法
