@@ -1,6 +1,6 @@
 <template>
   <div id="home">
-    <nav-bar class="home-nav"><div slot="center">购物车</div></nav-bar>
+    <nav-bar class="home-nav"><div slot="center">购物街</div></nav-bar>
     <tab-control class="tab-control" :titles="['流行','新款','精选']" @tabClick="tabClick" ref="tabControl1" v-show="isTabFixed"/>
     <scroll class="content" ref="scroll" :probeType="3" :pullUpLoad="true" @scroll="contentScroll" @pullingUp="loadMore">
       <home-swiper :banners="banners" @swiperImageLoad="swiperImageLoad"></home-swiper>
@@ -25,11 +25,13 @@
   import BackTop from 'components/content/backTop/BackTop'
 
   import {getHomeMultidata, getHomeGoods} from 'network/home'
-  import {itemListenerMixin} from 'common/mixin'
+
+  import {itemListenerMixin, backTopMixin} from 'common/mixin'
+  import {POP, NEW, SELL} from 'common/const'
 
   export default {
     name: "Home",
-    mixins: [itemListenerMixin],
+    mixins: [itemListenerMixin,backTopMixin],
     data(){
       return{
         banners: [],
@@ -39,8 +41,7 @@
           'new': {page: 0, list: []},
           'sell': {page: 0, list: []},
         },
-        currentType: 'pop',
-        isShowBackTop: false,
+        currentType: POP,
         tabOffSetTop: 0,
         isTabFixed: false,
         saveY: 0
@@ -77,9 +78,9 @@
       this.getHomeMultidata()
 
       //2、请求商品数据
-      this.getHomeGoods('pop')
-      this.getHomeGoods('new')
-      this.getHomeGoods('sell')
+      this.getHomeGoods(POP)
+      this.getHomeGoods(NEW)
+      this.getHomeGoods(SELL)
     },
     mounted(){
       //console.log('我是home');
@@ -108,7 +109,7 @@
       },
       contentScroll(position){
         //判断BackTop是否显示
-        this.isShowBackTop = (-position.y) > 1000
+        this.listenShowBackTop(position)
 
         //决定TabControl是否吸顶
         this.isTabFixed = (-position.y) > this.tabOffSetTop

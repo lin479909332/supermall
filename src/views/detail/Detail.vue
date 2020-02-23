@@ -10,7 +10,8 @@
       <detail-comment-info ref="comment" :commentInfo="commentInfo"/>
       <goods-list ref="recommend" :goods="recommends"/>
     </scroll>
-    <detail-bottom-bar/>
+    <back-top @click.native="backClick" v-show="isShowBackTop"/>
+    <detail-bottom-bar @addCart="addToCart"/>
   </div>
 </template>
 
@@ -26,9 +27,12 @@
 
   import Scroll from 'components/common/scroll/Scroll'
   import GoodsList from 'components/content/goods/GoodsList'
+  import BackTop from 'components/content/backTop/BackTop'
 
   import {getDetaildata, Goods, Shop, GoodsParam, getRecommend} from 'network/detail'
-  import {itemListenerMixin} from 'common/mixin'
+  import {itemListenerMixin,backTopMixin} from 'common/mixin'
+
+  import {mapActions} from 'vuex'
 
   export default {
     name: "Detail",
@@ -43,10 +47,11 @@
         commentInfo: {},
         recommends: [],
         themeTopYs: [],
-        currentIndex: 0
+        currentIndex: 0,
+        isShowBackTop: false,
       }
     },
-    mixins: [itemListenerMixin],
+    mixins: [itemListenerMixin,backTopMixin],
     components:{
       DetailNavBar,
       DetailSwiper,
@@ -57,7 +62,8 @@
       DetailCommentInfo,
       DetailBottomBar,
       Scroll,
-      GoodsList
+      GoodsList,
+      BackTop
     },
     created() {
       //1、获取iid并保存
@@ -85,11 +91,12 @@
 
       //3、请求推荐数据
       getRecommend().then(res =>{
-        console.log(res);
+        //console.log(res);
         this.recommends = res.data.list
       })
     },
     methods:{
+      ...mapActions(['addCart']),
       imageLoad(){
         //刷新better-scroll
         this.$refs.scroll.refresh()
@@ -100,7 +107,7 @@
         this.themeTopYs.push(this.$refs.comment.$el.offsetTop)
         this.themeTopYs.push(this.$refs.recommend.$el.offsetTop)
         this.themeTopYs.push(Number.MAX_VALUE)
-        console.log(this.themeTopYs);
+        //console.log(this.themeTopYs);
       },
       titleClick(index){
         //滑动到指定区域
@@ -129,7 +136,24 @@
             this.$refs.nav.currentIndex = this.currentIndex
           }
         }
-      }
+        this.listenShowBackTop(position)
+      },
+      addToCart(){
+        const product = {}
+        product.iid = this.iid
+        product.image = this.topImages[0]
+        product.title = this.goods.title
+        product.desc = this.goods.desc
+        product.price = this.goods.realPrice
+
+        // this.$store.dispatch('addCart',product).then(res =>{
+        //   console.log(res);
+        // })
+
+        this.addCart(product).then(res => {
+          this.$toast.show(res)
+        })
+      },
     },
     mounted() {
       //console.log('我是detail');
